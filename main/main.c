@@ -10,20 +10,27 @@
 #include "nvs_flash.h"
 #include "esp_netif.h"
 
+//mqtt headers
+#include "mqtt_client.h"
+
 static const char *TAG = "LDR";
 
 // WiFi config
 #define WIFI_SSID "YOUR_WIFI"
 #define WIFI_PASS "YOUR_PASSWORD"
 
+//mqtt config
+#define MQTT_BROKER_URI "mqtt://192.168.1.11:1883"
+
 // Function declarations
-static void event_handler(void* arg, esp_event_base_t event_base,
-                          int32_t event_id, void* event_data);
+static void event_handler(void* arg, esp_event_base_t event_base,int32_t event_id, void* event_data);
 void wifi_init_sta(void);
+//global mqtt client
+static esp_mqtt_client_handle_t mqtt_client = NULL;
+void mqtt_app_start(void);
 
 
-static void event_handler(void* arg, esp_event_base_t event_base,
-                          int32_t event_id, void* event_data)
+static void event_handler(void* arg, esp_event_base_t event_base,int32_t event_id, void* event_data)
 {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) 
     {
@@ -80,10 +87,24 @@ void wifi_init_sta(void)
     ESP_LOGI("WIFI", "wifi_init_sta finished");
 }
 
+void mqtt_app_start(void)
+{
+    esp_mqtt_client_config_t mqtt_cfg = 
+    {
+        .broker.address.uri = MQTT_BROKER_URI,
+    };
+
+    mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
+    ESP_ERROR_CHECK(esp_mqtt_client_start(mqtt_client));
+
+    ESP_LOGI("MQTT", "MQTT client started");
+}
+
 void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init());
     wifi_init_sta();
+    mqtt_app_start();
 
     adc_oneshot_unit_handle_t adc1_handle;
     adc_oneshot_unit_init_cfg_t init_config1 = 
@@ -107,17 +128,25 @@ void app_main(void)
         ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, ADC_CHANNEL_0, &raw));
 
         int percent = 100 - ((raw * 100) / 4095);
-        ESP_LOGI(TAG, "Light level: %d (%d%%)", raw, percent);
+        const char *day_status = (raw > 2500) ? "night" : "day";
 
-        if (raw > 2500) 
+        ESP_LOGI(TAG, "Light level: %d (%d%%)", raw, percent);
+        ESP_LOGI(TAG, "%s detected", day_status);
+
+        char msg[96];
+        snprintf(msg, sizeof(msg),
+                "{\"raw\":%d,\"percent\":%d,\"status\":\"%s\"}",
+                raw, percent, day_status);
+
+        if (mqtt_client != NULL) 
         {
-            ESP_LOGI(TAG, "Night detected");
-        } 
-        else 
-        {
-            ESP_LOGI(TAG, "Day detected");
+            esp_mqtt_client_publish(mqtt_client, "light-sensor/data", msg, 0, 1, 0);
+            esp_mqtt_client_publish(mqtt_client, "light-sensor/status", day_status, 0, 1, 0);
+
+            ESP_LOGI("MQTT", "Published: %s", msg);
         }
 
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
+
 }
