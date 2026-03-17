@@ -36,10 +36,16 @@ static void event_handler(void* arg, esp_event_base_t event_base,int32_t event_i
     {
         esp_wifi_connect();
     } 
+
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) 
     {
-        ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-        ESP_LOGI("WIFI", "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
+    ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+    ESP_LOGI("WIFI", "Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
+
+        if (mqtt_client == NULL) 
+        {
+            mqtt_app_start();
+        }
     }
 }
 
@@ -104,7 +110,6 @@ void app_main(void)
 {
     ESP_ERROR_CHECK(nvs_flash_init());
     wifi_init_sta();
-    mqtt_app_start();
 
     adc_oneshot_unit_handle_t adc1_handle;
     adc_oneshot_unit_init_cfg_t init_config1 = 
@@ -146,7 +151,7 @@ void app_main(void)
             ESP_LOGI("MQTT", "Published: %s", msg);
         }
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(3000));
     }
 
 }
