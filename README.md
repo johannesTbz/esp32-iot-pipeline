@@ -39,9 +39,7 @@ Photoresistor → ESP32 → WiFi → MQTT → Docker (Mosquitto) → python Subs
 night
 ```
 
-```
 ### Example Python Subscriber Output
-```
 
 ```
 [14:32:10] Connected to MQTT broker: Success
