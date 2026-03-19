@@ -13,13 +13,14 @@ The device reads light levels from a photoresistor, processes the data, and publ
 - Connect to WiFi using ESP-IDF  
 - Publish data using MQTT  
 - Run MQTT broker locally using Docker (Mosquitto)  
+- Subscribe to MQTT data in real time using a Python client
 
 ---
 
 ## Architecture
 
 ```
-Photoresistor → ESP32 → WiFi → MQTT → Docker (Mosquitto) → Subscriber
+Photoresistor → ESP32 → WiFi → MQTT → Docker (Mosquitto) → python Subscriber
 ```
 
 ---
@@ -36,6 +37,17 @@ Photoresistor → ESP32 → WiFi → MQTT → Docker (Mosquitto) → Subscriber
 ### Topic: `light-sensor/status`
 ```
 night
+```
+
+```
+### Example Python Subscriber Output
+```
+
+```
+[14:32:10] Connected to MQTT broker: Success
+[14:32:10] Subscribed to topics
+[14:32:11] 📊 DATA | raw=977 | 77% | day
+[14:32:11] 🌙 STATUS | day
 ```
 
 ---
@@ -76,8 +88,22 @@ docker run --rm -it eclipse-mosquitto:2 mosquitto_sub -h host.docker.internal -p
 ```
 
 Listen to status:
+
 ```bash
 docker run --rm -it eclipse-mosquitto:2 mosquitto_sub -h host.docker.internal -p 1883 -t "light-sensor/status"
+```
+
+### 4. Python Subscriber
+
+Install dependencies:
+
+```bash
+pip install -r subscriber/requirements.txt
+```
+Run the subscriber:
+
+```bash
+python subscriber/subscriber.py
 ```
 
 ---
@@ -89,6 +115,8 @@ docker run --rm -it eclipse-mosquitto:2 mosquitto_sub -h host.docker.internal -p
 - MQTT (Mosquitto)
 
 - Docker
+
+- Python
 
 - WiFi networking
 
@@ -103,6 +131,8 @@ docker run --rm -it eclipse-mosquitto:2 mosquitto_sub -h host.docker.internal -p
 - MQTT publish/subscribe pattern
 
 - Running infrastructure (Mosquitto) in Docker
+
+- Building a Python MQTT subscriber for real-time data consumption
 
 - Building a complete IoT data pipeline
 ---
