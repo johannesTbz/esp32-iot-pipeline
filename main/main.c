@@ -20,7 +20,7 @@ static const char *TAG = "LDR";
 #define WIFI_PASS "YOUR_PASSWORD"
 
 //mqtt config
-#define MQTT_BROKER_URI "mqtt://192.168.1.11:1883"
+#define MQTT_BROKER_URI "mqtt://YOUR_PC_IP:1883"
 
 // Function declarations
 static void event_handler(void* arg, esp_event_base_t event_base,int32_t event_id, void* event_data);

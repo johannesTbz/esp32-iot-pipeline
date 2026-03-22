@@ -13,14 +13,15 @@ The device reads light levels from a photoresistor, processes the data, and publ
 - Connect to WiFi using ESP-IDF  
 - Publish data using MQTT  
 - Run MQTT broker locally using Docker (Mosquitto)  
-- Subscribe to MQTT data in real time using a Python client
+- Run a Python MQTT subscriber as a containerized microservice
+- Start the backend services with Docker Compose
 
 ---
 
 ## Architecture
 
 ```
-Photoresistor → ESP32 → WiFi → MQTT → Docker (Mosquitto) → python Subscriber
+Photoresistor → ESP32 → WiFi → MQTT → Docker Compose → Mosquitto + python Subscriber
 ```
 
 ---
@@ -70,14 +71,19 @@ idf.py build
 idf.py -p COMX flash monitor
 ```
 
-### 2. MQTT Broker (Docker)
+### 2. Backend services (Docker Compose)
 
-Make sure Docker is running, then start Mosquitto:
+Make sure Docker is running, then start the backend services:
 
 ```bash
-docker compose up -d
+docker compose up --build
 ```
-### 3. Subscribe to data
+This starts:
+
+- mqtt (Mosquitto broker)
+- subscriber (Python MQTT subscriber)
+
+### 3. Optional: Subscribe using MQTT CLI
 
 Listen to sensor data:
 
@@ -91,7 +97,7 @@ Listen to status:
 docker run --rm -it eclipse-mosquitto:2 mosquitto_sub -h host.docker.internal -p 1883 -t "light-sensor/status"
 ```
 
-### 4. Python Subscriber
+### 4. Optional: Run the Python Subscriber
 
 Install dependencies:
 
@@ -114,6 +120,8 @@ python subscriber/subscriber.py
 
 - Docker
 
+- Docker Compose
+
 - Python
 
 - WiFi networking
@@ -132,7 +140,11 @@ python subscriber/subscriber.py
 
 - Building a Python MQTT subscriber for real-time data consumption
 
-- Building a complete IoT data pipeline
+- Containerizing a Python microservice with a Dockerfile
+
+- Using Docker Compose to run multiple services together
+
+- Building a complete end-to-end IoT data pipeline
 ---
 
 ## Future improvements

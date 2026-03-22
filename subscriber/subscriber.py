@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 import paho.mqtt.client as mqtt
 
-BROKER_HOST = "localhost"
+BROKER_HOST = "mqtt"
 BROKER_PORT = 1883
 
 TOPIC_DATA = "light-sensor/data"
